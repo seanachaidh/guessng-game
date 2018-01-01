@@ -15,3 +15,20 @@
     :graphic-type "pdf"
     :file-name (merge-pathnames (truename ".") "test.pdf")
     :add-time-and-experiment-to-file-name t)
+
+
+;; Events to be used for tracing the application
+(define-event object-classified (object guessing-object) (node guessing-node))
+(define-event agent-speaks (agent guessing-agent) (utterance string))
+(define-event agent-adapts (agent guessing-agent) (adaption string))
+
+(define-event-handler (trace-interaction-in-repl object-classified)
+  (format (monitor-stream monitor)
+    "object: ~a classified as ~a~%"))
+(define-event-handler (trace-interaction-in-repl agent-speaks)
+  (format (monitor-stream monitor)
+    "agent ~a speaks: ~s~%" (id agent) utterance))
+    
+(define-event-handler (trace-interaction-in-repl agent-adapts)
+  (format (monitor-stream monitor)
+    "Agent ~a does not know ~s He adapts" (id agent) utterance))

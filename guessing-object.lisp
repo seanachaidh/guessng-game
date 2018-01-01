@@ -19,7 +19,7 @@
   (:documentation "Gets the feature value with name for object"))
 
 (defmethod print-object ((obj guessing-object) stream)
-  (format stream "Naming object: ~a" (context-features obj)))
+  (format stream "Naming object: ~a" (id (actual-object obj))))
 
 (defmethod get-feature-value ((obj guessing-object) (name symbol))
   (let ((featval (find name (context-features obj) :test #'eq :key #'car)))

@@ -31,7 +31,7 @@
 (defmethod print-object ((node guessing-node) stream)
   (if *print-pretty*
     (pprint-logical-block (stream nil)
-      (format stream "Node ~a  with range [ ~f - ~f]" (feature node) (car (range node)) (cadr (range node))))))
+      (format stream "~a  with range [ ~f - ~f]" (feature node) (car (range node)) (cadr (range node))))))
 
 (defmethod is-same-p ((this guessing-node) (other guessing-node))
   (and (= (car (range this)) (car (range other)))
