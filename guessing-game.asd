@@ -11,5 +11,5 @@
     (:file "guessing-node")
     (:file "guessing-agent")
     (:file "guessing-tree")
-    (:file "guessing-environment")
-    (:file "guessing-monitors")))
+    (:file "guessing-monitors")
+    (:file "guessing-environment")))

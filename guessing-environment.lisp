@@ -86,22 +86,28 @@
     (load-scene env (random-elt (scenes (our-world env))))
     (let* (
        (current-speaker (speaker env))
-       (current-topic (random-elt (objects current-speaker)))
+       (current-topic (let ((obj (random-elt (objects current-speaker))))
+                        (notify object-picked current-speaker obj)
+                        obj))
        (current-hearer (hearer env))
        (speaker-topic-tree (pick-tree current-speaker current-topic))
-       (speaker-classification (deep-classify speaker-topic-tree
-                          current-topic
-                          (objects current-speaker)))
-       (speaker-word (search-best-word current-speaker speaker-classification))
+       (speaker-classification (let ((cls (deep-classify speaker-topic-tree
+                                       current-topic
+                                       (objects current-speaker))))
+                                  (notify object-classified current-topic cls)
+                                  cls))
+       (speaker-word (let ((w (search-best-word current-speaker speaker-classification)))
+                        (notify agent-speaks current-speaker w)
+                        w))
        (hearer-found-meaning (search-best-meaning current-hearer speaker-word)))
 
-      (format t "Robot ~a picked object ~a as topic ~%" (name current-speaker) (id (actual-object current-topic)))
-      (format t "Robot ~a classifies object as ~a ~%" (name current-speaker) speaker-classification)
-      (format t "Robot ~a says ~a ~%" (name current-speaker) speaker-word)
+      ;~ (format t "Robot ~a picked object ~a as topic ~%" (name current-speaker) (id (actual-object current-topic)))
+      ;~ (format t "Robot ~a classifies object as ~a ~%" (name current-speaker) speaker-classification)
+      ;~ (format t "Robot ~a says ~a ~%" (name current-speaker) speaker-word)
 
       (if (not hearer-found-meaning)
         (progn
-          (format t "Hearer ~a does not know ~a and conceptualizes it ~%" (name current-hearer) speaker-word)
+          (notify agent-learns current-hearer speaker-word)
           (decrease-score current-speaker speaker-classification speaker-word)
           (conceptualize current-hearer current-topic speaker-word)
           (mark-communicated-successfully env nil)
@@ -110,17 +116,12 @@
       (let ((real-object (locate-meaning current-hearer hearer-found-meaning)))
         (if (or (not real-object) (not (eq (id (actual-object real-object)) (id (actual-object current-topic)))))
           (progn
-            (format t "Hearer ~a has another meaning for ~a : ~a . He adapts ~%"
-                (name current-hearer) speaker-word (id (actual-object real-object)))
+            (notify agent-adapts current-hearer speaker-word)
             
             (decrease-score current-hearer hearer-found-meaning speaker-word)
             (decrease-score current-speaker speaker-classification speaker-word)
             (mark-communicated-successfully env nil))
-          ;~ (setf (communicative-losses *global-logger*) (+ (communicative-losses *global-logger*) 1))
-          ;~ (setf (coherence-losses *global-logger*) (+ (coherence-losses *global-logger*) 1)))
-          
           (progn
-            (format t "Both speaker and hearer agree on the meaning of a word ~%")
             (increase-score current-hearer hearer-found-meaning speaker-word)
             (increase-score current-speaker speaker-classification speaker-word)
             (mark-communicated-successfully env t)

@@ -21,14 +21,30 @@
 (define-event object-classified (object guessing-object) (node guessing-node))
 (define-event agent-speaks (agent guessing-agent) (utterance string))
 (define-event agent-adapts (agent guessing-agent) (adaption string))
+(define-event object-picked (agent guessing-agent) (object guessing-object))
+(define-event agent-learns (agent guessing-agent) (word string))
 
+
+(define-event-handler (trace-interaction-in-repl interaction-finished)
+  (if (communicated-successfully interaction)
+    (format (monitor-stream monitor)
+      "Interaction successfull~%")
+    (format (monitor-stream monitor)
+      "Interaction failed!~%")))
+
+(define-event-handler (trace-interaction-in-repl agent-learns)
+  (format (monitor-stream monitor)
+    "Agent ~a does not know the word ~s and conceptualizes it~%"
+    (id agent) word))
+(define-event-handler (trace-interaction-in-repl object-picked)
+  (format (monitor-stream monitor)
+    "Agent: ~a, picks object ~a~%" (id agent) object))
 (define-event-handler (trace-interaction-in-repl object-classified)
   (format (monitor-stream monitor)
-    "object: ~a classified as ~a~%"))
+    "object: ~a classified as ~a~%" object node))
 (define-event-handler (trace-interaction-in-repl agent-speaks)
   (format (monitor-stream monitor)
     "agent ~a speaks: ~s~%" (id agent) utterance))
-    
 (define-event-handler (trace-interaction-in-repl agent-adapts)
   (format (monitor-stream monitor)
-    "Agent ~a does not know ~s He adapts" (id agent) utterance))
+    "Agent ~a does not know ~s He adapts~%" (id agent) adaption))
