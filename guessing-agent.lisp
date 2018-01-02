@@ -17,7 +17,10 @@
 	 :accessor name)
    (trees :initarg :trees
 	  :initform '()
-	  :accessor trees)
+	  :accessor trees
+   (used-word :initarg :used-word
+	          :initform nil
+	          :accessor used-word)
    (original-objects :initarg :original-objects
 		     :initform '()
 		     :accessor original-objects)

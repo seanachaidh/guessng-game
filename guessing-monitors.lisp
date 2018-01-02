@@ -13,7 +13,29 @@
     :y1-max 1.0 :y1-min 0 
     :draw-y1-grid t :error-bars :min-max
     :graphic-type "pdf"
-    :file-name (merge-pathnames (truename ".") "test.pdf")
+    :file-name (merge-pathnames (truename ".") "success.pdf")
+    :add-time-and-experiment-to-file-name t)
+    
+
+;; Extra monitor for the alignment success
+(define-monitor record-alignment-success
+    :class 'data-recorder)
+
+
+;; Edited version of the monitor above to get a plot of the allignment success
+(define-monitor plot-alignment-success
+    :class 'gnuplot-graphic-generator
+    :documentation "Plots communicative success"
+    :data-sources '((average record-alignment-success))
+    :update-interval 100
+    :caption '("alignment success" )
+    :x-label "games" 
+    :y1-label "alignment success"
+    :use-y-axis '(1) 
+    :y1-max 1.0 :y1-min 0 
+    :draw-y1-grid t :error-bars :min-max
+    :graphic-type "pdf"
+    :file-name (merge-pathnames (truename ".") "success.pdf")
     :add-time-and-experiment-to-file-name t)
 
 
@@ -24,6 +46,11 @@
 (define-event object-picked (agent guessing-agent) (object guessing-object))
 (define-event agent-learns (agent guessing-agent) (word string))
 
+
+;; Nerer we record the value for the alignment success
+(define-event-handler (record-alignment-success interaction-finished)
+
+)
 
 (define-event-handler (trace-interaction-in-repl interaction-finished)
   (if (communicated-successfully interaction)
