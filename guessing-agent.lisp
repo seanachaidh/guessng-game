@@ -17,7 +17,7 @@
 	 :accessor name)
    (trees :initarg :trees
 	  :initform '()
-	  :accessor trees
+	  :accessor trees)
    (used-word :initarg :used-word
 	          :initform nil
 	          :accessor used-word)
@@ -56,6 +56,29 @@
   (:documentation "Removes all the unused words from a robots lexicon"))
 (defgeneric get-with-best-score (robot)
   (:documentation "Gets the word with the best score"))
+(defgeneric search-used-word-for-object (robot object)
+  (:documentation "Return the word that the robot would have used for the given object"))
+
+(defmethod search-used-word-for-object ((robot guessing-agent) (object guessing-object))
+  (let* ((used-tree (pick-tree robot object))
+		 (used-value (get-feature-value object (feat used-tree)))
+		 (used-list (remove-if (lambda (x) 
+								(not (eql (feature (word-meaning x)) 
+										  (feat used-tree)))) (words robot)))
+		 (only-for-object (remove-if (lambda(x)
+							(not (and (<= used-value (cadr (range (word-meaning x))))
+							     (>= used-value (car (range (word-meaning x)))))))
+							used-list))
+		 (final-word (reduce (lambda (&optional (x nil) (y nil))
+					(if (and (null x) (null y))
+						nil
+						(if (or (and (< (- (car (range (word-meaning x))) (cadr (range (word-meaning x)))) ;x is more specific
+						                (- (car (range (word-meaning y))) (cadr (range (word-meaning y))))))
+						        (> (word-score x) (word-score y)))
+							x y))) only-for-object)))
+	(if (null final-word)
+		nil
+		(word-form final-word))))
 
 (defmethod get-with-best-score ((robot guessing-agent))
   (reduce (lambda (x y)

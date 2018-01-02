@@ -82,7 +82,6 @@
 
 (defmethod interact ((env guessing-environment) interaction &key)
     (declare (ignore interaction))
-    ;~ (format t "We are playing game ~d ~%" i)
     (load-scene env (random-elt (scenes (our-world env))))
     (let* (
        (current-speaker (speaker env))
@@ -99,36 +98,29 @@
        (speaker-word (let ((w (search-best-word current-speaker speaker-classification)))
                         (notify agent-speaks current-speaker w)
                         w))
-       (hearer-found-meaning (search-best-meaning current-hearer speaker-word)))
-
-      ;~ (format t "Robot ~a picked object ~a as topic ~%" (name current-speaker) (id (actual-object current-topic)))
-      ;~ (format t "Robot ~a classifies object as ~a ~%" (name current-speaker) speaker-classification)
-      ;~ (format t "Robot ~a says ~a ~%" (name current-speaker) speaker-word)
-
-      (if (not hearer-found-meaning)
-        (progn
-          (notify agent-learns current-hearer speaker-word)
-          (decrease-score current-speaker speaker-classification speaker-word)
-          (conceptualize current-hearer current-topic speaker-word)
-          (mark-communicated-successfully env nil)
-          ;~ (setf (coherence-losses *global-logger*) (+ (coherence-losses *global-logger*) 1))
-      )
-      (let ((real-object (locate-meaning current-hearer hearer-found-meaning)))
-        (if (or (not real-object) (not (eq (id (actual-object real-object)) (id (actual-object current-topic)))))
-          (progn
-            (notify agent-adapts current-hearer speaker-word)
-            
-            (decrease-score current-hearer hearer-found-meaning speaker-word)
-            (decrease-score current-speaker speaker-classification speaker-word)
-            (mark-communicated-successfully env nil))
-          (progn
-            (increase-score current-hearer hearer-found-meaning speaker-word)
-            (increase-score current-speaker speaker-classification speaker-word)
-            (mark-communicated-successfully env t)
-            ;~ (if (is-same-p speaker-classification hearer-found-meaning)
-                ;~ (setf (coherence-wins *global-logger*) (+ (coherence-wins *global-logger*) 1))
-                ;~ (setf (coherence-losses *global-logger*) (+ (coherence-losses *global-logger*) 1)))
-          ))))
-      (loop for r in (population env)
-		 do (prune-words r))))
-;; Ik weet niet of ik hier een notify moet uitvoren of niet
+       (hearer-found-meaning (search-best-meaning current-hearer speaker-word))
+       (hearer-used-word (search-used-word-for-object current-hearer current-topic)))
+       
+		  (if (not hearer-found-meaning)
+			(progn
+			  (notify agent-learns current-hearer speaker-word)
+			  (decrease-score current-speaker speaker-classification speaker-word)
+			  (conceptualize current-hearer current-topic speaker-word)
+			  (mark-communicated-successfully env nil)
+		  )
+		  (let ((real-object (locate-meaning current-hearer hearer-found-meaning)))
+			(if (or (not real-object) (not (eq (id (actual-object real-object)) (id (actual-object current-topic)))))
+			  (progn
+				(notify agent-adapts current-hearer speaker-word)
+				
+				(decrease-score current-hearer hearer-found-meaning speaker-word)
+				(decrease-score current-speaker speaker-classification speaker-word)
+				(mark-communicated-successfully env nil))
+			  (progn
+				(increase-score current-hearer hearer-found-meaning speaker-word)
+				(increase-score current-speaker speaker-classification speaker-word)
+				(mark-communicated-successfully env t)))))
+		  (loop for r in (population env)
+			 do (prune-words r))
+		  (setf (used-word current-speaker) speaker-word)
+		  (setf (used-word current-hearer) hearer-used-word)))

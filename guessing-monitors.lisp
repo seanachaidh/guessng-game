@@ -35,7 +35,7 @@
     :y1-max 1.0 :y1-min 0 
     :draw-y1-grid t :error-bars :min-max
     :graphic-type "pdf"
-    :file-name (merge-pathnames (truename ".") "success.pdf")
+    :file-name (merge-pathnames (truename ".") "alignment.pdf")
     :add-time-and-experiment-to-file-name t)
 
 
@@ -49,8 +49,15 @@
 
 ;; Nerer we record the value for the alignment success
 (define-event-handler (record-alignment-success interaction-finished)
-
-)
+	(record-value monitor
+		(let* ((current-hearer (hearer experiment))
+		       (current-speaker (speaker experiment))
+		       (is-aligned (and (not (or (null (used-word current-speaker))
+		                                 (null (used-word current-hearer))))
+		                        (equal (used-word current-speaker)
+		                               (used-word current-hearer)))))
+		   (format t "Speaker: ~s, Hearer: ~s~%" (used-word current-speaker) (used-word current-hearer))
+		   (if is-aligned 1 0))))
 
 (define-event-handler (trace-interaction-in-repl interaction-finished)
   (if (communicated-successfully interaction)

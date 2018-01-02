@@ -8,6 +8,7 @@
   "The path of the scenes repository")
 
 (activate-monitor plot-communicative-success)
+(activate-monitor plot-alignment-success)
 (activate-monitor trace-interaction-in-repl)
 
 (run-batch 'guessing-environment 1000 1)
