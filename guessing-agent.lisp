@@ -42,7 +42,7 @@
   (:documentation "Searches for a word given its form"))
 (defgeneric invent-word (robot meaning)
   (:documentation "Lets the robot invent words"))
-(defgeneric search-best-word (robot meaning)
+(defgeneric search-best-word (robot meaning &optional invent)
   (:documentation "Searches the best word for a given meaning"))
 (defgeneric conceptualize (robot object word)
   (:documentation "Conceptualizes a given word for an object"))
@@ -61,25 +61,10 @@
 
 (defmethod search-used-word-for-object ((robot guessing-agent) (object guessing-object))
   (let* ((used-tree (pick-tree robot object))
-		 (used-value (get-feature-value object (feat used-tree)))
-		 (used-list (remove-if (lambda (x) 
-								(not (eql (feature (word-meaning x)) 
-										  (feat used-tree)))) (words robot)))
-		 (only-for-object (remove-if (lambda(x)
-							(not (and (<= used-value (cadr (range (word-meaning x))))
-							     (>= used-value (car (range (word-meaning x)))))))
-							used-list))
-		 (final-word (reduce (lambda (&optional (x nil) (y nil))
-					(if (and (null x) (null y))
-						nil
-						(if (or (and (< (- (car (range (word-meaning x))) (cadr (range (word-meaning x)))) ;x is more specific
-						                (- (car (range (word-meaning y))) (cadr (range (word-meaning y))))))
-						        (> (word-score x) (word-score y)))
-							x y))) only-for-object)))
-	(if (null final-word)
-		nil
-		(word-form final-word))))
-
+		 (found-meaning (classify used-tree object (objects robot) nil))
+		 (word (search-best-word robot found-meaning nil)))
+	word))
+	
 (defmethod get-with-best-score ((robot guessing-agent))
   (reduce (lambda (x y)
 	    (if (> (word-score x) (word-score y)) x y))
@@ -184,13 +169,15 @@
 	(word-meaning (reduce (lambda (x y) (if (> (word-score x) (word-score y)) x y)) found-words))
 	nil)))
 
-(defmethod search-best-word ((robot guessing-agent) (meaning guessing-node))
+(defmethod search-best-word ((robot guessing-agent) (meaning guessing-node) &optional (invent t))
   (let ((filtered-list (remove-if-not (lambda (x)
 					(eq (word-meaning x) meaning))
 				      (words robot))))
     (if (> (length filtered-list) 0)
 	(word-form (reduce (lambda (x y) (if (> (word-score x) (word-score y)) x y)) filtered-list))
-	(word-form (invent-word robot meaning)))))
+	(if invent
+		(word-form (invent-word robot meaning))
+		nil))))
 
 (defmethod locate-meaning ((robot guessing-agent) (meaning guessing-node))
   (let ((found-objects (remove-if-not (lambda (x)

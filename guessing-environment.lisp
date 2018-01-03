@@ -28,7 +28,7 @@
 
 ;;Configuration values
 (define-configuration-default-value :environment-data-set (list "objects-1"))
-(define-configuration-default-value :population-size 2)
+(define-configuration-default-value :population-size 10)
 
 (defmethod initialize-instance :after ((experiment guessing-environment) &key)
   

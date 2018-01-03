@@ -39,6 +39,21 @@
     :add-time-and-experiment-to-file-name t)
 
 
+(define-monitor plot-alignment-success
+    :class 'gnuplot-graphic-generator
+    :documentation "Plots communicative success"
+    :data-sources '((average record-alignment-success))
+    :update-interval 100
+    :caption '("Classification success" )
+    :x-label "games" 
+    :y1-label "classification success"
+    :use-y-axis '(1) 
+    :y1-max 1.0 :y1-min 0 
+    :draw-y1-grid t :error-bars :min-max
+    :graphic-type "pdf"
+    :file-name (merge-pathnames (truename ".") "classification.pdf")
+    :add-time-and-experiment-to-file-name t)
+
 ;; Events to be used for tracing the application
 (define-event object-classified (object guessing-object) (node guessing-node))
 (define-event agent-speaks (agent guessing-agent) (utterance string))
