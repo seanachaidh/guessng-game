@@ -13,7 +13,7 @@
           :reader feat))
   (:documentation "A tree that can also categorize objects"))
 
-(defgeneric classify (tree obj others)
+(defgeneric classify (tree obj others &optional countscore)
   (:documentation "Classify an object"))
 (defgeneric split-node (tree node)
   (:documentation "Splits the range of a node into two nodes with half the range"))
@@ -68,7 +68,7 @@
     (add-node tree right-node :parent node)
     (add-node tree left-node :parent node)))
 
-(defmethod classify ((tree guessing-tree) (obj guessing-object) others)
+(defmethod classify ((tree guessing-tree) (obj guessing-object) others &optional (countscore t))
   (labels
       ((test-match (node data)
          (let ((data-value (get-feature-value data (feat tree))))
@@ -84,13 +84,12 @@
       (if (not (= (length objects-matching) 1))
           (progn
             (split-node tree matching-node)
-            ;~ (setf (classification-losses *global-logger*) (+ (classification-losses *global-logger*) 1))
-            nil) ;Return false if classification fails
+            nil)
           (progn
-            (setf (score tree) (+ (score tree) 1))
-            (setf (score matching-node) (+ (score matching-node) 1))
-            ;~ (setf (classification-wins *global-logger*) (+ (classification-wins *global-logger*) 1))
-            (prune-tree tree *prune-level*)
+			(when countscore
+				(setf (score tree) (+ (score tree) 1))
+				(setf (score matching-node) (+ (score matching-node) 1))
+				(prune-tree tree *prune-level*))
             matching-node)))));Return true if classification succeeds
 
 ;this procedure is iterative and it is better to fix this

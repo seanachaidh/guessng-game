@@ -11,4 +11,4 @@
 (activate-monitor plot-alignment-success)
 (activate-monitor trace-interaction-in-repl)
 
-(run-batch 'guessing-environment 1000 1)
+(run-batch 'guessing-environment 10000 1)
