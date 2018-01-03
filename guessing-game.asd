@@ -10,6 +10,6 @@
    ((:file "guessing-object")
     (:file "guessing-node")
     (:file "guessing-agent")
-    (:file "guessing-tree")
     (:file "guessing-monitors")
+    (:file "guessing-tree")
     (:file "guessing-environment")))

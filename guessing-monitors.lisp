@@ -38,11 +38,13 @@
     :file-name (merge-pathnames (truename ".") "alignment.pdf")
     :add-time-and-experiment-to-file-name t)
 
+(define-monitor record-classification-success
+	:class 'data-recorder)
 
-(define-monitor plot-alignment-success
+(define-monitor plot-classification-success
     :class 'gnuplot-graphic-generator
     :documentation "Plots communicative success"
-    :data-sources '((average record-alignment-success))
+    :data-sources '((average record-classification-success))
     :update-interval 100
     :caption '("Classification success" )
     :x-label "games" 
@@ -60,9 +62,14 @@
 (define-event agent-adapts (agent guessing-agent) (adaption string))
 (define-event object-picked (agent guessing-agent) (object guessing-object))
 (define-event agent-learns (agent guessing-agent) (word string))
+(define-event classification-finished (success t))
 
+;; Here we record tghe value for the classification success
+(define-event-handler (record-classification-success classification-finished)
+	(record-value monitor
+		(if success 1 0)))
 
-;; Nerer we record the value for the alignment success
+;; Here we record the value for the alignment success
 (define-event-handler (record-alignment-success interaction-finished)
 	(record-value monitor
 		(let* ((current-hearer (hearer experiment))
