@@ -49,7 +49,7 @@
       when (null nodes) return nil end
       when (funcall func (car nodes) data) return (car nodes) end
       do (let ((cur-node (car nodes)))
-		   (setq nodes (cdr nodes))
+           (setq nodes (cdr nodes))
            (loop
              for child in (children cur-node)
              do (push child nodes)))))
@@ -60,11 +60,11 @@
        (left-node (make-instance 'guessing-node
                     :range (list (car (range node))
                                  (+ (car (range node)) (/ difference-range 2)))
-		    :feature (feat tree)))
+            :feature (feat tree)))
        (right-node (make-instance 'guessing-node
                      :range (list (+ (car (range node)) (/ difference-range 2))
                                   (cadr (range node)))
-		     :feature (feat tree))))
+             :feature (feat tree))))
     (add-node tree right-node :parent node)
     (add-node tree left-node :parent node)))
 
@@ -76,23 +76,23 @@
                 (>= data-value (car (range node)))
                 (<= data-value (cadr (range node)))))))
     (let* ((matching-node (traverse-with-data tree #'test-match :data obj))
-	   (objects-matching (remove-if-not (lambda (x)
-					      (let ((xval (get-feature-value x (feat tree))))
-						(and (>= xval (car (range matching-node)))
-						     (<= xval (cadr (range matching-node))))))
-					    others)))
+       (objects-matching (remove-if-not (lambda (x)
+                          (let ((xval (get-feature-value x (feat tree))))
+                        (and (>= xval (car (range matching-node)))
+                             (<= xval (cadr (range matching-node))))))
+                        others)))
       (if (not (= (length objects-matching) 1))
           (progn
              (when countscore
-				(split-node tree matching-node)
-				(notify classification-finished nil))
-			 nil)
+                (split-node tree matching-node)
+                (notify classification-finished nil))
+             nil)
           (progn
-			(when countscore
-				(setf (score tree) (+ (score tree) 1))
-				(setf (score matching-node) (+ (score matching-node) 1))
-				(prune-tree tree *prune-level*)
-				(notify classification-finished t))
+            (when countscore
+                (setf (score tree) (+ (score tree) 1))
+                (setf (score matching-node) (+ (score matching-node) 1))
+                (prune-tree tree *prune-level*)
+                (notify classification-finished t))
             matching-node)))));Return true if classification succeeds
 
 ;this procedure is iterative and it is better to fix this
@@ -100,5 +100,5 @@
 (defmethod deep-classify ((tree guessing-tree) (obj guessing-object) others)
   (let ((classify-attempt (classify tree obj others)))
     (if classify-attempt
-	classify-attempt
-	(deep-classify tree obj others))))
+        classify-attempt
+        (deep-classify tree obj others))))

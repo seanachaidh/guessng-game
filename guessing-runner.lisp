@@ -12,4 +12,4 @@
 (activate-monitor plot-classification-success)
 (activate-monitor trace-interaction-in-repl)
 
-(run-batch 'guessing-environment 10 1)
+(run-batch 'guessing-environment 1000 1)
