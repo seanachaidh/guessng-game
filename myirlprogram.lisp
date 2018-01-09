@@ -2,7 +2,7 @@
 
 (asdf:make :irl)
 (defpackage :testprog
-  (:use :common-lisp :utils))
+  (:use :common-lisp :utils :irl))
 
 (in-package :testprog)
 
@@ -16,14 +16,18 @@
   (:documentation  "Dit is een klasse om een entiteit voor te stellen"))
 
 
+(defparameter *studenten* (list))
+
+(push (make-instance 'student :naam "Pieter" :leeftijd 25) *studenten*)
+
 (defprimitive search-students ((age integer) (stud student))
   ((age => stud)
     (let ((studs (remove-if (lambda (x)
                         (< x age))
               *studenten*)))
       (when studs
-        (bind stud 1.0 studs))))
+        (bind (stud 1.0 studs)))))
   
-  ((studs => age)
+  ((stud => age)
     (let ((bindval (apply #'min (mapcar (lambda(x) (leeftijd x)) *studenten*))))
-      (bind age 1.0 bindval))))
+      (bind (age 1.0 bindval)))))
