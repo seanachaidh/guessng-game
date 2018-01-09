@@ -7,7 +7,8 @@
 (defstruct word
   form
   meaning
-  score)
+  score
+  notused)
 
 ;; Agent here comes from the experiment framework
 ;; TODO: Implement actions
@@ -92,12 +93,15 @@
 				    (eq (word-form x) word)))
 			     (words robot))))
     (when (< (word-score found-word) 1)
-      (setf (word-score found-word) (+ (word-score found-word) 0.1)))))
+      (setf (word-score found-word) (+ (word-score found-word) 0.1)))
+    (loop for w in (words robot)
+		when (not (eql w found-word))
+			do (setf (word-notused w) (+ (word-notused w) 1)))))
 
 (defmethod conceptualize ((robot guessing-agent) (object guessing-object) (word string))
   (let* ((tree (pick-tree robot object))
 	 (new-meaning (deep-classify tree object (objects robot))))
-    (push (make-word :form word :meaning new-meaning :score 0.5) (words robot))))
+    (push (make-word :form word :meaning new-meaning :score 0.5 :notused 0) (words robot))))
     
 (defmethod invent-word ((robot guessing-agent) (meaning guessing-node))
   (let* ((vowels "aeiou")
@@ -110,13 +114,14 @@
 				 collect (char consonants (random (length consonants))))))
     (push (make-word :form (format nil "~{~A~}" character-list)
 		     :meaning meaning
-		     :score 0.5)
+		     :score 0.5
+		     :notused 0)
 	  (words robot))
     (car (words robot))))
 
 (defmethod prune-words ((robot guessing-agent))
   (setf (words robot) (remove-if (lambda (x)
-				   (<= (word-score x) 0))
+				   (or (<= (word-score x) 0)))
 				 (words robot))))
 
 (defmethod pick-tree ((robot guessing-agent) (obj guessing-object))
@@ -137,7 +142,7 @@
 
 
     (if (= (cdr the-chosen-one) 0)
-	(break "Something went wrong here"))
+		(break "Something went wrong here"))
     
     (car (random-elt to-choose-from))))
     

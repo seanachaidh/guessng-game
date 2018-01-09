@@ -10,10 +10,6 @@
           :accessor score
           :initarg :score
           :initform 0)
-   ;; I think i can remove this slot
-   (words :initform '()
-	  :initarg :words
-	  :accessor words)
    (feature :initarg :feature
 	    :initform 'nofeature
 	    :accessor feature))
