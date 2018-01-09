@@ -3,6 +3,7 @@
 (defsystem :guessing-game
   :depends-on (:experiment-framework 
                :utils
+               :irl
                :monitors
                :physical-robot-world)
   :serial t

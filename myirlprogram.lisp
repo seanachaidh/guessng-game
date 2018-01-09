@@ -11,7 +11,7 @@
           :initarg :value
           :accessor value)))
 
-(defclass student ()
+(defclass student (entity)
   ((naam :initform ""
          :initarg :naam
          :accessor naam)
@@ -46,13 +46,27 @@
 (defparameter *studenten* (make-blackboard))
 (fill-ontology *studenten*)
 
-(defprimitive search-students ((age myint) (stud student-set))
+;~ (defprimitive search-students ((age myint) (stud student-set))
+  ;~ ((age => stud)
+    ;~ (let ((studs (remove-if (lambda (x)
+                        ;~ (< (leeftijd x) (value age)))
+              ;~ (get-data ontology 'studenten))))
+      ;~ (when studs
+        ;~ (bind (stud 1.0 (make-instance 'student-set :id 1 :elements studs))))))
+  
+  ;~ ((stud => age)
+    ;~ (let ((bindval (apply #'min (mapcar (lambda(x) (leeftijd x))
+                      ;~ (get-data ontology 'studenten)))))
+      ;~ (bind (age 1.0 (make-instance 'myint :id 1 :value bindval))))))
+
+(defprimitive search-students ((age myint) (stud student))
   ((age => stud)
     (let ((studs (remove-if (lambda (x)
                         (< (leeftijd x) (value age)))
               (get-data ontology 'studenten))))
       (when studs
-        (bind (stud 1.0 (make-instance 'student-set :id 1 :elements studs))))))
+        (loop for s in studs
+          do (bind (stud 1.0 s))))))
   
   ((stud => age)
     (let ((bindval (apply #'min (mapcar (lambda(x) (leeftijd x))
@@ -63,6 +77,7 @@
 
 (let ((bindings (evaluate-irl-program `((bind myint ?y ,(make-instance 'myint :value 21))
                         (search-students ?y ?x)) *studenten*)))
+  (break)
   (loop for b in (car bindings)
     do (format t "Variable: ~a~%Score: ~a~%Value: ~a~%"
                   (var b) (score b) (value b))))

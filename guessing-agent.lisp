@@ -4,11 +4,26 @@
 
 (defparameter *salthres* 1)
 
-(defstruct word
-  form
-  meaning
-  score
-  notused)
+;~ (defstruct word
+  ;~ form
+  ;~ meaning
+  ;~ score
+  ;~ notused)
+
+(defclass word (entity)
+  ((form :type string
+         :initarg :form
+         :accessor form)
+   (meaning :type guessing-node
+            :initarg :meaning
+            :accessor meaning)
+   (score :type float
+          :initarg :score
+          :accessor score)
+   (notused :type integer
+            :initform 0
+            :accessor notused))
+  (:documentation "Class for representing word<->meaning combinations"))
 
 ;; Agent here comes from the experiment framework
 ;; TODO: Implement actions
@@ -33,14 +48,29 @@
 	    :accessor objects))
   (:documentation "A class for a robot"))
 
+
+(defclass mystring (entity)
+  ((value :type string
+          :initform ""
+          :initarg :value
+          :accessor value))
+  (:documentation "An entity for holding a string"))
+
+;; PRIMITIVES TO BE USED FOR IRL
+;~ (defprimitive search-word ((tosearch mystring) (found word))
+  ;~ ((tosearch => found)
+    ;~ ;;code
+    ;~ )
+  ;~ ((found => tosearch)
+    ;~ ;;code
+  ;~ ))
+
 (defgeneric pick-tree (robot obj)
   (:documentation "Pick a tree randomly based on the score of the trees. The best tree for the given object"))
 (defgeneric create-scaled-object (robot obj)
   (:documentation "Creates an object with all the features being context-scaled"))
 (defgeneric context-scale (robot obj feat)
   (:documentation "Context scales the feature of an object in the current scene"))
-(defgeneric search-word (robot wordstring)
-  (:documentation "Searches for a word given its form"))
 (defgeneric invent-word (robot meaning)
   (:documentation "Lets the robot invent words"))
 (defgeneric search-best-word (robot meaning &optional invent)
@@ -68,40 +98,40 @@
 	
 (defmethod get-with-best-score ((robot guessing-agent))
   (reduce (lambda (x y)
-	    (if (> (word-score x) (word-score y)) x y))
+	    (if (> (score x) (score y)) x y))
 	  (words robot)))
 
 (defmethod decrease-score ((robot guessing-agent) (meaning guessing-node) (word string))
   (let* ((found-word (find-if (lambda (x)
-				(and (eq (word-meaning x) meaning)
-				     (eq (word-form x) word)))
+				(and (eq (meaning x) meaning)
+				     (eq (form x) word)))
 			      (words robot)))
 	 (competing (remove-if-not (lambda (x)
-				     (is-same-p (word-meaning x) (word-meaning found-word)))
+				     (is-same-p (meaning x) (meaning found-word)))
 				   (words robot))))
-    (when (> (word-score found-word) 0)
-      (setf (word-score found-word) (- (word-score found-word) 0.1)))
+    (when (> (score found-word) 0)
+      (setf (score found-word) (- (score found-word) 0.1)))
     (loop for c in competing
-       when (> (word-score c) 0)
-       do (setf (word-score c) (- (word-score c) 0.1))
+       when (> (score c) 0)
+       do (setf (score c) (- (score c) 0.1))
        end)))
 
 
 (defmethod increase-score ((robot guessing-agent) (meaning guessing-node) (word string))
   (let ((found-word (find-if (lambda (x)
-			       (and (eq (word-meaning x) meaning)
-				    (eq (word-form x) word)))
+			       (and (eq (meaning x) meaning)
+				    (eq (form x) word)))
 			     (words robot))))
-    (when (< (word-score found-word) 1)
-      (setf (word-score found-word) (+ (word-score found-word) 0.1)))
+    (when (< (score found-word) 1)
+      (setf (score found-word) (+ (score found-word) 0.1)))
     (loop for w in (words robot)
 		when (not (eql w found-word))
-			do (setf (word-notused w) (+ (word-notused w) 1)))))
+			do (setf (notused w) (+ (notused w) 1)))))
 
 (defmethod conceptualize ((robot guessing-agent) (object guessing-object) (word string))
   (let* ((tree (pick-tree robot object))
 	 (new-meaning (deep-classify tree object (objects robot))))
-    (push (make-word :form word :meaning new-meaning :score 0.5 :notused 0) (words robot))))
+    (push (make-instance 'word :form word :meaning new-meaning :score 0.5) (words robot))))
     
 (defmethod invent-word ((robot guessing-agent) (meaning guessing-node))
   (let* ((vowels "aeiou")
@@ -112,16 +142,15 @@
 			       end
 			       when (not (evenp x))
 				 collect (char consonants (random (length consonants))))))
-    (push (make-word :form (format nil "~{~A~}" character-list)
+    (push (make-instance 'word :form (format nil "~{~A~}" character-list)
 		     :meaning meaning
-		     :score 0.5
-		     :notused 0)
+		     :score 0.5)
 	  (words robot))
     (car (words robot))))
 
 (defmethod prune-words ((robot guessing-agent))
   (setf (words robot) (remove-if (lambda (x)
-				   (or (<= (word-score x) 0)))
+				   (or (<= (score x) 0)))
 				 (words robot))))
 
 (defmethod pick-tree ((robot guessing-agent) (obj guessing-object))
@@ -169,19 +198,19 @@
     (make-instance 'guessing-object :actual-object obj :context-features featurelist)))
 
 (defmethod search-best-meaning ((robot guessing-agent) (word string))
-  (let ((found-words (remove-if-not (lambda (x) (eq (word-form x) word)) (words robot))))
+  (let ((found-words (remove-if-not (lambda (x) (eq (form x) word)) (words robot))))
     (if (> (length found-words) 0)
-	(word-meaning (reduce (lambda (x y) (if (> (word-score x) (word-score y)) x y)) found-words))
+	(meaning (reduce (lambda (x y) (if (> (score x) (score y)) x y)) found-words))
 	nil)))
 
 (defmethod search-best-word ((robot guessing-agent) (meaning guessing-node) &optional (invent t))
   (let ((filtered-list (remove-if-not (lambda (x)
-					(eq (word-meaning x) meaning))
+					(eq (meaning x) meaning))
 				      (words robot))))
     (if (> (length filtered-list) 0)
-	(word-form (reduce (lambda (x y) (if (> (word-score x) (word-score y)) x y)) filtered-list))
+	(form (reduce (lambda (x y) (if (> (score x) (score y)) x y)) filtered-list))
 	(if invent
-		(word-form (invent-word robot meaning))
+		(form (invent-word robot meaning))
 		nil))))
 
 (defmethod locate-meaning ((robot guessing-agent) (meaning guessing-node))

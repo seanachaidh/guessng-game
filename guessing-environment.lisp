@@ -111,15 +111,15 @@
 		  (let ((real-object (locate-meaning current-hearer hearer-found-meaning)))
 			(if (or (not real-object) (not (eq (id (actual-object real-object)) (id (actual-object current-topic)))))
 			  (progn
-				(notify agent-adapts current-hearer speaker-word)
-				
-				(decrease-score current-hearer hearer-found-meaning speaker-word)
-				(decrease-score current-speaker speaker-classification speaker-word)
-				(mark-communicated-successfully env nil))
+          (notify agent-adapts current-hearer speaker-word)
+          
+          (decrease-score current-hearer hearer-found-meaning speaker-word)
+          (decrease-score current-speaker speaker-classification speaker-word)
+          (mark-communicated-successfully env nil))
 			  (progn
-				(increase-score current-hearer hearer-found-meaning speaker-word)
-				(increase-score current-speaker speaker-classification speaker-word)
-				(mark-communicated-successfully env t)))))
+          (increase-score current-hearer hearer-found-meaning speaker-word)
+          (increase-score current-speaker speaker-classification speaker-word)
+          (mark-communicated-successfully env t)))))
 		  (loop for r in (population env)
 			 do (prune-words r))
 		  (setf (used-word current-speaker) speaker-word)

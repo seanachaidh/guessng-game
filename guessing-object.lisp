@@ -2,6 +2,7 @@
   (:use :common-lisp
         :utils
         :experiment-framework
+        :irl
         :monitors
         :physical-robot-world))
 
