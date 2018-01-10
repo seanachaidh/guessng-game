@@ -4,12 +4,6 @@
 
 (defparameter *salthres* 1)
 
-;~ (defstruct word
-  ;~ form
-  ;~ meaning
-  ;~ score
-  ;~ notused)
-
 (defclass word (entity)
   ((form :type string
          :initarg :form
@@ -56,14 +50,95 @@
           :accessor value))
   (:documentation "An entity for holding a string"))
 
-;; PRIMITIVES TO BE USED FOR IRL
-;~ (defprimitive search-word ((tosearch mystring) (found word))
-  ;~ ((tosearch => found)
-    ;~ ;;code
-    ;~ )
-  ;~ ((found => tosearch)
-    ;~ ;;code
-  ;~ ))
+
+;;Actions agents may or may not perform
+(defclass pick-action (action)
+	((picked-object :type guessing-object
+					:initarg :picked-object
+					:reader picked-object)
+	 (used-word :type string
+				:initarg :used-word
+				:reader used-word)
+	 (classification :type guessing-node
+					 :initarg :classification
+					 :reader classification))
+  (:documentation "Action that consists of picking an object and trying to classify it"))
+
+(defclass hear-action (action)
+	((my-object :type guessing-object
+			    :initarg :my-object
+			    :reader my-object)
+	 (your-object :type guessing-object
+				  :initarg :your-object
+				  :reader your-object)
+	 (used-word :type string
+				:initarg :used-word
+				:reader used-word)
+	 (my-classification :type guessing-node
+						:initarg :my-classification
+						:reader my-classification)
+	 (your-classification :type guessing-node
+						  :initarg :your-classification
+						  :reader your-classification))
+	(:documentation "Action for representing hearing"))
+	
+(defclass feedback-action (action)
+	((correction :type guessing-object
+				 :initarg :correction
+				 :initform nil
+				 :reader correction))
+	(:documentation "Actions that consists of giving feedback"))
+
+
+;;Methods for interaction
+(defmethod plan-action-based-on-last-action ((agent guessing-agent) (world wold) (last-action (eql nil)))
+	(let* ((current-topic (random-elt (objects agent)))
+		   (current-tree (pick-tree agent current-topic))
+		   (classification (deep-classify current-tree current-topic (objects agent)))
+		   (chosen-word (search-best-word agent classification)))
+		(setf (used-word agent) chosen-word)
+		(make-instance 'pick-action :picked-object current-topic
+									:used-word chosen-word
+									:classification classification)))
+
+(defmethod plan-action-based-on-last-action ((agent guessing-agent) (world world) (last-action pick-action))
+	(let ((found-meaning (search-best-meaning agent (used-word last-action)))
+		  (hearer-word (search-used-word-for-object agent (picked-object last-action))))
+		(setf (used-word agent) hearer-word)
+		(if (not found-meaning)
+			(progn
+				(conceptualize agent (picked-object last-action) (used-word last-action))
+				(setf (communicated-successfully agent) nil)
+				(make-instance 'hear-action :my-object nil
+											:used-word (used-word last-action)
+											:your-object (picked-object last-action)
+											:my-classification found-meaning
+											:your-classification (classification last-action)))
+											
+			(let ((real-object (locate-meaning agent found-meanng)))
+				(if (or (not real-object) (not (eq (id (actual-object (picked-object last-action))) (id (actual-object real-object)))))
+					(progn
+						(setf (communicated-successfully agent) nil)
+						(decrease-score agent found-meaning (used-word last-action)))
+					(progn
+						(setf (communicated-successfully agent) t)
+						(increase-score found-meaning (used-word last-action)))
+				(make-instance 'hear-action :my-object real-object
+											:used-word (used-word last-action)
+											:your-object (picked-object last-action)
+											:my-classification found-meaning
+											:your-classification (classification last-action)))))))
+											
+											
+(defmethod plan-action-based-on-last-action ((agent guessing-agent) (last-action hear-action))
+	(if (null (object last-action))
+		(progn
+			(decrease-score agent (your-classification last-action) (used-word last-action))
+			(setf (communicated-successfully agent) nil))
+		(progn
+			(increase-score agent (your-classification last-action) (used-word last-action))
+			(setf (communicated-successfully agent) t)))
+	(make-instance 'no-action))
 
 (defgeneric pick-tree (robot obj)
   (:documentation "Pick a tree randomly based on the score of the trees. The best tree for the given object"))
