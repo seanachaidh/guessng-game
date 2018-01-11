@@ -19,6 +19,8 @@
   (:documentation "Creates an object with all the features being context-scaled"))
 (defgeneric context-scale (world obj feat)
   (:documentation "Context scales the feature of an object in the current scene"))
+(defgeneric locate-meaning (world meaning)
+  (:documentation "Locates an object based on the meaning it bares"))
 
 (defmethod begin-interaction ((world guessing-world) &rest parameters &key)
   (declare (ignore parameters))
@@ -51,3 +53,13 @@
                        for feat in (features obj)
                        collect (cons (name feat) (context-scale world obj (name feat))))))
     (make-instance 'guessing-object :actual-object obj :context-features featurelist)))
+
+(defmethod locate-meaning ((world guessing-world) (meaning guessing-node))
+  (let ((found-objects (remove-if-not (lambda (x)
+					(let ((x-feature-value (get-feature-value x (feature meaning))))
+					  (and (>= x-feature-value (car (range meaning)))
+					       (<= x-feature-value (cadr (range meaning))))))
+				      (objects world))))
+    (if (> (length found-objects) 1)
+	nil
+	(car found-objects))))

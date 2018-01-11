@@ -155,7 +155,7 @@
 											:my-classification found-meaning
 											:your-classification (classification last-action)))
 											
-			(let ((real-object (locate-meaning agent found-meaning)))
+			(let ((real-object (locate-meaning world found-meaning)))
 				(if (or (not real-object) (not (eq (id (actual-object (picked-object last-action))) (id (actual-object real-object)))))
 					(progn
 						(setf (communicated-successfully agent) nil)
@@ -181,4 +181,7 @@
 			(increase-score agent (your-classification last-action) (used-word last-action))
 			(setf (communicated-successfully agent) t)))
 	(make-instance 'no-action))
+
+(defmethod consolidate-agent ((agent guessing-agent) (world guessing-world))
+  (prune-words agent))
 

@@ -36,10 +36,7 @@
 		     :accessor original-objects)
    (words :initarg :words
 	  :initform '()
-	  :accessor words)
-   (objects :initarg :objs
-	    :initform '()
-	    :accessor objects))
+	  :accessor words))
   (:documentation "A class for a robot"))
 
 
@@ -62,8 +59,6 @@
   (:documentation "Decreases the score of a word associated with a meaning"))
 (defgeneric increase-score (robot meaning word)
   (:documentation "Increases the score of a word associated with a meaning"))
-(defgeneric locate-meaning (robot meaning)
-  (:documentation "Locates an object based on the meaning it bares"))
 (defgeneric prune-words (robot)
   (:documentation "Removes all the unused words from a robots lexicon"))
 (defgeneric get-with-best-score (robot)
@@ -172,12 +167,4 @@
 		(form (invent-word robot meaning))
 		nil))))
 
-(defmethod locate-meaning ((robot guessing-agent) (meaning guessing-node))
-  (let ((found-objects (remove-if-not (lambda (x)
-					(let ((x-feature-value (get-feature-value x (feature meaning))))
-					  (and (>= x-feature-value (car (range meaning)))
-					       (<= x-feature-value (cadr (range meaning))))))
-				      (objects robot))))
-    (if (> (length found-objects) 1)
-	nil
-	(car found-objects))))
+
