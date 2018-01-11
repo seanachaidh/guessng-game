@@ -1,9 +1,9 @@
 (in-package #:asdf)
 
 (defsystem :guessing-game
-  :depends-on (:experiment-framework 
+  :depends-on (:experiment-framework
+               :action-behavior-framework
                :utils
-               :irl
                :monitors
                :physical-robot-world)
   :serial t
@@ -13,4 +13,5 @@
     (:file "guessing-agent")
     (:file "guessing-monitors")
     (:file "guessing-tree")
+    (:file "guessing-world")
     (:file "guessing-environment")))
