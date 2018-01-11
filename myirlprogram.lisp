@@ -26,9 +26,6 @@
 (defmethod print-object ((int myint) print-stream)
   (format print-stream "Integer value ~a" (value int)))
 
-
-  
-
 (defclass student-set (entity)
   ((elements :initarg :elements
              :type list

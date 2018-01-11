@@ -14,82 +14,6 @@
               
   (:documentation "A class for representing the environment"))
 
-;;Configuration values
-(define-configuration-default-value :environment-data-set (list "objects-1"))
-(define-configuration-default-value :population-size 10)
-
-(defmethod initialize-instance :after ((experiment guessing-environment) &key)
-  
-  ;~ (setf (our-world experiment) (make-instance 'physical-robot-world
-                                              ;~ :data-sets (get-configuration experiment :environment-data-set)))
-  ;~ (setf (current-scene (our-world experiment) ) (car (scenes (our-world experiment))))
-  
-  
-  (setf (world experiment) (make-instance 'guessing-world
-                                          :robot-world (make-instance 'physical-robot-world
-                                               :data-sets (get-configuration experiment :environment-data-set))))
-  (setf (population experiment)
-    (loop
-      for i from 1 to (get-configuration experiment :population-size)
-        collect (make-instance 'guessing-agent :id i
-                                               :experiment experiment
-                                               :name 'a)))
-
-  (let ((tree-collection (loop for feat in
-                (features (car (remove-if-not #'object-p
-                                  (entities (get-world-model (robot-world (world experiment))
-                                                             (name (random-elt (scenes (robot-world (world experiment)))))
-                                             'a)))))
-                  collect (make-instance 'guessing-tree :feat (name feat) :score 1))))
-      (loop for r in (population experiment)
-     do (setf (trees r) tree-collection))))
-
-;~ (defmethod interact ((env guessing-environment) interaction &key)
-    ;~ (declare (ignore interaction))
-    ;~ (load-scene env (random-elt (scenes (our-world env))))
-    ;~ (let* (
-       ;~ (current-speaker (speaker env))
-       ;~ (current-topic (let ((obj (random-elt (objects current-speaker))))
-                        ;~ (notify object-picked current-speaker obj)
-                        ;~ obj))
-       ;~ (current-hearer (hearer env))
-       ;~ (speaker-topic-tree (pick-tree current-speaker current-topic))
-       ;~ (speaker-classification (let ((cls (deep-classify speaker-topic-tree
-                                       ;~ current-topic
-                                       ;~ (objects current-speaker))))
-                                  ;~ (notify object-classified current-topic cls)
-                                  ;~ cls))
-       ;~ (speaker-word (let ((w (search-best-word current-speaker speaker-classification)))
-                        ;~ (notify agent-speaks current-speaker w)
-                        ;~ w))
-       ;~ (hearer-found-meaning (search-best-meaning current-hearer speaker-word))
-       ;~ (hearer-used-word (search-used-word-for-object current-hearer current-topic)))
-       
-		  ;~ (if (not hearer-found-meaning)
-			;~ (progn
-			  ;~ (notify agent-learns current-hearer speaker-word)
-			  ;~ (decrease-score current-speaker speaker-classification speaker-word)
-			  ;~ (conceptualize current-hearer current-topic speaker-word)
-			  ;~ (mark-communicated-successfully env nil)
-		  ;~ )
-		  ;~ (let ((real-object (locate-meaning current-hearer hearer-found-meaning)))
-			;~ (if (or (not real-object) (not (eq (id (actual-object real-object)) (id (actual-object current-topic)))))
-			  ;~ (progn
-          ;~ (notify agent-adapts current-hearer speaker-word)
-          
-          ;~ (decrease-score current-hearer hearer-found-meaning speaker-word)
-          ;~ (decrease-score current-speaker speaker-classification speaker-word)
-          ;~ (mark-communicated-successfully env nil))
-			  ;~ (progn
-          ;~ (increase-score current-hearer hearer-found-meaning speaker-word)
-          ;~ (increase-score current-speaker speaker-classification speaker-word)
-          ;~ (mark-communicated-successfully env t)))))
-		  ;~ (loop for r in (population env)
-			 ;~ do (prune-words r))
-		  ;~ (setf (used-word current-speaker) speaker-word)
-		  ;~ (setf (used-word current-hearer) hearer-used-word)))
-      
-;;---------------------------------------------------------------------
 
 ;;Actions agents may or may not perform
 (defclass pick-action (action)
@@ -128,6 +52,30 @@
 				 :initform nil
 				 :reader correction))
 	(:documentation "Actions that consists of giving feedback"))
+
+;;Configuration values
+(define-configuration-default-value :environment-data-set (list "objects-1"))
+(define-configuration-default-value :population-size 10)
+
+(defmethod initialize-instance :after ((experiment guessing-environment) &key)
+  (setf (world experiment) (make-instance 'guessing-world
+                                          :robot-world (make-instance 'physical-robot-world
+                                               :data-sets (get-configuration experiment :environment-data-set))))
+  (setf (population experiment)
+    (loop
+      for i from 1 to (get-configuration experiment :population-size)
+        collect (make-instance 'guessing-agent :id i
+                                               :experiment experiment
+                                               :name 'a)))
+
+  (let ((tree-collection (loop for feat in
+                (features (car (remove-if-not #'object-p
+                                  (entities (get-world-model (robot-world (world experiment))
+                                                             (name (random-elt (scenes (robot-world (world experiment)))))
+                                             'a)))))
+                  collect (make-instance 'guessing-tree :feat (name feat) :score 1))))
+      (loop for r in (population experiment)
+     do (setf (trees r) tree-collection))))
 
 ;;Methods for interaction
 (defmethod act ((agent guessing-agent) (world guessing-world) (last-action (eql nil)))
