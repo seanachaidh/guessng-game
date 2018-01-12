@@ -56,6 +56,7 @@
 ;;Configuration values
 (define-configuration-default-value :environment-data-set (list "objects-1"))
 (define-configuration-default-value :population-size 10)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
 
 (defmethod initialize-instance :after ((experiment guessing-environment) &key)
   (setf (world experiment) (make-instance 'guessing-world
@@ -89,13 +90,13 @@
 									:classification classification)))
 
 (defmethod act ((agent guessing-agent) (world guessing-world) (last-action pick-action))
-	(let ((found-meaning (search-best-meaning agent (used-word last-action)))
+	(let ((found-meaning (search-best-meaning agent (form (used-word last-action))))
 		  (hearer-word (search-used-word-for-object agent (picked-object last-action) (objects world))))
 		(setf (used-word agent) hearer-word)
 		(if (not found-meaning)
 			(progn
         (format t "We are failing")
-				(conceptualize agent (picked-object last-action) (used-word last-action) (objects world))
+				(conceptualize agent (picked-object last-action) (form (used-word last-action)) (objects world))
 				(setf (communicated-successfully agent) nil)
 				(make-instance 'hear-action :my-object nil
 											:used-word (used-word last-action)
@@ -105,12 +106,8 @@
 											
 			(let ((real-object (locate-meaning world found-meaning)))
 				(if (or (not real-object) (not (eq (id (actual-object (picked-object last-action))) (id (actual-object real-object)))))
-					(progn
 						(setf (communicated-successfully agent) nil)
-						(decrease-score agent found-meaning (used-word last-action)))
-					(progn
-						(setf (communicated-successfully agent) t)
-						(increase-score agent found-meaning (used-word last-action))))
+						(setf (communicated-successfully agent) t))
 				(make-instance 'hear-action :my-object real-object
 											:used-word (used-word last-action)
 											:your-object (picked-object last-action)
@@ -122,14 +119,11 @@
   (format t "finishing~%")
 	(if (or (null (my-object last-action)) (not (eq (id (actual-object (my-object last-action)))
                                                   (id (actual-object (your-object last-action))))))
-		(progn
-			(decrease-score agent (your-classification last-action) (used-word last-action))
-			(setf (communicated-successfully agent) nil))
-		(progn
-			(increase-score agent (your-classification last-action) (used-word last-action))
-			(setf (communicated-successfully agent) t)))
+			(setf (communicated-successfully agent) nil)
+			(setf (communicated-successfully agent) t))
 	(make-instance 'no-action))
 
 (defmethod consolidate-agent ((agent guessing-agent) (world guessing-world))
+  (align-agent agent (get-configuration agent :alignment-strategy))
   (prune-words agent))
 

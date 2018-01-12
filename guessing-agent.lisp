@@ -39,14 +39,6 @@
 	  :accessor words))
   (:documentation "A class for a robot"))
 
-
-(defclass mystring ()
-  ((value :type string
-          :initform ""
-          :initarg :value
-          :accessor value))
-  (:documentation "An entity for holding a string"))
-
 (defgeneric pick-tree (robot obj others)
   (:documentation "Pick a tree randomly based on the score of the trees. The best tree for the given object"))
 (defgeneric invent-word (robot meaning)
@@ -55,9 +47,9 @@
   (:documentation "Searches the best word for a given meaning"))
 (defgeneric conceptualize (robot object word others)
   (:documentation "Conceptualizes a given word for an object"))
-(defgeneric decrease-score (robot meaning word)
+(defgeneric decrease-score (robot word &key delta)
   (:documentation "Decreases the score of a word associated with a meaning"))
-(defgeneric increase-score (robot meaning word)
+(defgeneric increase-score (robot word &key delta)
   (:documentation "Increases the score of a word associated with a meaning"))
 (defgeneric prune-words (robot)
   (:documentation "Removes all the unused words from a robots lexicon"))
@@ -65,44 +57,95 @@
   (:documentation "Gets the word with the best score"))
 (defgeneric search-used-word-for-object (robot object others)
   (:documentation "Return the word that the robot would have used for the given object"))
+(defgeneric get-form-competitors (robot word)
+  (:documentation "Gets the words with the same meaning as the given word"))
+(defgeneric get-meaning-competitors (robot word)
+  (:documentation "Gets all the words with the same form as the given word"))
+  
+(defgeneric align-agent (agent strategy)
+  (:documentation "align-agents the agent"))
+  
+
+;; --- All align-agent agent methods ---
+
+(defmethod align-agent ((agent guessing-agent) (strategy (eql :imitate)))
+  (when (eq (discourse-role agent) :hearer)
+    (let ((competitors (get-form-competitors agent (used-word agent))))
+      (loop for c in competitors
+        do (setf (words agent) (remove c (words agent)))))))
+        
+
+(defmethod  align-agent ((agent guessing-agent) (strategy (eql :minimal)))
+  (when (communicated-successfully agent)
+  (let ((competitors (get-form-competitors agent (used-word agent))))
+    (loop for c in competitors
+      do (setf (words agent) (remove c (words agent)))))))
+      
+(defmethod align-agent ((agent guessing-agent) (strategy (eql :lateral-inhibition)))
+  (if (communicated-successfully agent)
+    (let ((competitors (get-form-competitors agent (used-word agent))))
+      (increase-score agent (used-word agent))
+      (loop for c in competitors
+        do (decrease-score agent c)))
+    (when (eql (discourse-role agent) 'speaker)
+      (decrease-score agent (used-word agent)))))
+
+(defmethod align-agent ((agent guessing-agent) (strategy (eql :th-lateral)))
+  (if (communicated-successfully agent)
+    (let ((competitors (if (eql (discourse-role agent) 'speaker)
+                          (get-form-competitors agent (used-word agent))
+                          (get-meaning-competitors agent (used-word agent)))))
+      (setf (score (used-word agent)) (+ (* (score (used-word agent))
+                                            (- 1 (get-configuration agent :lateral-inc-delta)))))
+      (loop for c in competitors
+        do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
+    (when (eql (discourse-role agent) 'speaker)
+      (setf (score (used-word agent)) (- (* (score (used-word agent))
+                                            (- 1 (get-configuration agent :lateral-dec-delta))))))))
+
+(defmethod align-agent ((agent guessing-agent) (strategy (eql :special-lateral)))
+  (if (communicated-successfully agent)
+    (let ((competitors (get-form-competitors agent (used-word agent))))
+      (setf (score (used-word agent)) (+ (* (score (used-word agent))
+                                            (- 1 (get-configuration agent :lateral-inc-delta)))))
+      (loop for c in competitors
+        do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
+    (when (eql (discourse-role agent) 'speaker)
+      (setf (score (used-word agent)) (- (* (score (used-word agent))
+                                            (- 1 (get-configuration agent :lateral-dec-delta))))))))
+
+;; -------------------------------
 
 (defmethod search-used-word-for-object ((robot guessing-agent) (object guessing-object) (others list))
   (let* ((used-tree (pick-tree robot object others))
 		 (found-meaning (classify used-tree object others nil))
 		 (word (search-best-word robot found-meaning nil)))
 	word))
-	
+
+(defmethod get-form-competitors ((robot guessing-agent) (word word))
+  (remove word (find-all-if (lambda (x)
+                              (is-same-p (meaning x) (meaning word)))
+                    (words robot))))
+                    
+(defmethod get-meaning-competitors ((robot guessing-agent) (word word))
+  (remove word (find-all-if (lambda (x)
+                              (equal (form x) (form word)))
+                    (words robot))))
+
 (defmethod get-with-best-score ((robot guessing-agent))
   (reduce (lambda (x y)
 	    (if (> (score x) (score y)) x y))
 	  (words robot)))
 
-(defmethod decrease-score ((robot guessing-agent) (meaning guessing-node) (word string))
-  (let* ((found-word (find-if (lambda (x)
-				(and (eq (meaning x) meaning)
-				     (eq (form x) word)))
-			      (words robot)))
-	 (competing (remove-if-not (lambda (x)
-				     (is-same-p (meaning x) (meaning found-word)))
-				   (words robot))))
-    (when (> (score found-word) 0)
-      (setf (score found-word) (- (score found-word) 0.1)))
-    (loop for c in competing
-       when (> (score c) 0)
-       do (setf (score c) (- (score c) 0.1))
-       end)))
+(defmethod decrease-score ((robot guessing-agent) (word word) &key (delta 0.1))
+  (setf (score word) (- (score word) delta))
+  (when (< (score word) 0)
+    (setf (score word) 0)))
 
-
-(defmethod increase-score ((robot guessing-agent) (meaning guessing-node) (word string))
-  (let ((found-word (find-if (lambda (x)
-			       (and (eq (meaning x) meaning)
-				    (eq (form x) word)))
-			     (words robot))))
-    (when (< (score found-word) 1)
-      (setf (score found-word) (+ (score found-word) 0.1)))
-    (loop for w in (words robot)
-		when (not (eql w found-word))
-			do (setf (notused w) (+ (notused w) 1)))))
+(defmethod increase-score ((robot guessing-agent) (word word) &key (delta 0.1))
+  (setf (score word) (+ (score word) delta))
+  (when (> (score word) 1)
+    (setf (score word) 1)))
 
 (defmethod conceptualize ((robot guessing-agent) (object guessing-object) (word string) (others list))
   (let* ((tree (pick-tree robot object others))
@@ -162,9 +205,9 @@
 					(eq (meaning x) meaning))
 				      (words robot))))
     (if (> (length filtered-list) 0)
-	(form (reduce (lambda (x y) (if (> (score x) (score y)) x y)) filtered-list))
+	(reduce (lambda (x y) (if (> (score x) (score y)) x y)) filtered-list)
 	(if invent
-		(form (invent-word robot meaning))
+		(invent-word robot meaning)
 		nil))))
 
 
