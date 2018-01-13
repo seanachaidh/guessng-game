@@ -68,6 +68,11 @@
 
 ;; --- All align-agent agent methods ---
 
+(define-configuration-default-value :lateral-inc-delta 0.1)
+(define-configuration-default-value :lateral-dec-delta 0.2)
+;~ (define-configuration-default-value :li-inh-score 0.2)
+
+
 (defmethod align-agent ((agent guessing-agent) (strategy (eql :imitate)))
   (when (eq (discourse-role agent) :hearer)
     (let ((competitors (get-form-competitors agent (used-word agent))))

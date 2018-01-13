@@ -4,6 +4,7 @@
         :experiment-framework
         :action-behavior-framework
         :monitors
+        :plot-raw-data
         :physical-robot-world))
 
 (in-package :guessing)

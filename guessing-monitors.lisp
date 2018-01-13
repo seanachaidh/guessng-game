@@ -62,6 +62,9 @@
   :class 'alist-recorder
   :average-windows 1)
 
+(define-monitor record-lexes-speaker
+  :class 'data-recorder)
+
 
 (define-monitor plot-name-competition 
     :class 'alist-gnuplot-graphic-generator
@@ -85,6 +88,10 @@
 (define-event-handler (record-classification-success classification-finished)
 	(record-value monitor
 		(if success 1 0)))
+
+(define-event-handler (record-lexes-speaker interaction-finished)
+  (record-value monitor
+    (used-word (speaker experiment))))
 
 ;; Here we record the value for the alignment success
 (define-event-handler (record-alignment-success interaction-finished)

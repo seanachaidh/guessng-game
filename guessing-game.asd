@@ -5,6 +5,7 @@
                :action-behavior-framework
                :utils
                :monitors
+               :plot-raw-data
                :physical-robot-world)
   :serial t
   :components 

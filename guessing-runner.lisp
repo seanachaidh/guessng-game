@@ -9,8 +9,16 @@
 
 (activate-monitor plot-communicative-success)
 (activate-monitor plot-alignment-success)
+(activate-monitor plot-name-competition)
+
 (activate-monitor plot-classification-success)
 (activate-monitor trace-interaction-in-repl)
 (activate-monitor trace-interaction)
 
-(run-batch 'guessing-environment 1000 1)
+(defparameter *testboard* (make-instance 'blackboard))
+(add-data-field *testboard* 'hello (list 1 2 3 2 1 5))
+
+(let ((plot-data (get-plot-data-from-blackboards (list *testboard*) 'hello)))
+  (format t "~a~%" (serialize-plot-data plot-data)))
+
+;~ (run-batch 'guessing-environment 1000 1)
