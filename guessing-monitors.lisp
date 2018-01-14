@@ -21,8 +21,6 @@
 (define-monitor record-alignment-success
     :class 'data-recorder)
 
-
-
 ;; Edited version of the monitor above to get a plot of the allignment success
 (define-monitor plot-alignment-success
     :class 'gnuplot-graphic-generator
@@ -125,6 +123,10 @@
       "Interaction successfull~%")
     (format (monitor-stream monitor)
       "Interaction failed!~%")))
+      
+      
+(define-event-handler (record-lexes-speaker run-series-finished)
+  (format t "~{~a~%~}" (get-average-values monitor)))
 
 (define-event-handler (trace-interaction-in-repl agent-learns)
   (format (monitor-stream monitor)
