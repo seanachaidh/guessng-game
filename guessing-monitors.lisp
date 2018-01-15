@@ -126,7 +126,52 @@
       
       
 (define-event-handler (record-lexes-speaker run-series-finished)
-  (format t "~{~a~%~}" (get-average-values monitor)))
+  (format t "~{~a~%~}" (get-average-values monitor))
+  (labels ((most-used-meaning (wordlist)
+      (loop
+        with counterlist = nil
+        for w in wordlist
+        for elem = (find (meaning w) counterlist :key #'second :test #'is-same-p)
+        if (not (null elem))
+          do (setf (first elem) (+ (first elem)  1))
+        else
+          do (push (list 1 (meaning w)) counterlist)
+        finally (return (second (reduce (lambda (x y)
+                          (if (> (first x) (first y))
+                            x
+                            y))
+                    counterlist))))))
+    (let* ((most-used (most-used-meaning (caar (get-average-values monitor))))
+           (revwords (reverse (caar (get-average-values monitor))))
+           (wordlist (remove-duplicates (loop for w in revwords
+                        when (is-same-p most-used (meaning w))
+                          collect (form w)) :test #'string=))
+           (truth-values (loop
+                      for w in wordlist
+                      collect (list w (loop for rw in revwords
+                                          collect (equal w (form rw))))))
+           (frequencies (loop for truth in truth-values
+                collect (list (first truth) (loop for val in (second truth)
+                                                  for counter from 1
+                                                  with x = 0
+                                                  when (eq val t)
+                                                    do (setq x (+ x 1))
+                                                  end
+                                                  collect (/ x counter))))))
+      (format t "plot for words: ~{~s~}~%" wordlist)
+      (break)
+      (loop for freq in frequencies
+            for filename = (first freq)
+            for serial-data = (list (second freq))
+            do (write-serialized-plot-data (list serial-data) (babel-pathname :directory (list :up "tmpgraph" (concatenate 'string filename ".lisp")))))
+                                                  
+      (raw-files->evo-plot
+        :raw-file-paths (loop for w in wordlist
+                            collect (list :up "tmpgraph" w))
+        :average-windows 1
+        :title "form-meaning-plot"))))
+        
+      
 
 (define-event-handler (trace-interaction-in-repl agent-learns)
   (format (monitor-stream monitor)

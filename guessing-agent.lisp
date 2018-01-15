@@ -18,6 +18,9 @@
             :initform 0
             :accessor notused))
   (:documentation "Class for representing word<->meaning combinations"))
+  
+(defmethod print-object ((word word) stream)
+  (format stream "~s(~f)" (form word) (score word)))
 
 ;; Agent here comes from the experiment framework
 ;; TODO: Implement actions
@@ -61,6 +64,8 @@
   (:documentation "Gets the words with the same meaning as the given word"))
 (defgeneric get-meaning-competitors (robot word)
   (:documentation "Gets all the words with the same form as the given word"))
+(defgeneric get-with-best-score (robot)
+  (:documentation "Gets the word with the best score in the given robot's lexicon"))
   
 (defgeneric align-agent (agent strategy)
   (:documentation "align-agents the agent"))
@@ -120,6 +125,11 @@
                                             (- 1 (get-configuration agent :lateral-dec-delta))))))))
 
 ;; -------------------------------
+
+(defmethod get-with-best-score ((robot guessing-agent))
+  (reduce (lambda (x y)
+	    (if (> (score x) (score y)) x y))
+	  (words robot)))
 
 (defmethod search-used-word-for-object ((robot guessing-agent) (object guessing-object) (others list))
   (let* ((used-tree (pick-tree robot object others))

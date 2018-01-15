@@ -27,8 +27,10 @@
 (defmethod print-object ((node guessing-node) stream)
       (format stream "~a [ ~f - ~f]" (feature node) (car (range node)) (cadr (range node))))
 
-(defmethod is-same-p ((this guessing-node) (other guessing-node))
-  (and (= (car (range this)) (car (range other)))
+(defmethod is-same-p (this other)
+  (and (not (null other))
+       (not (null this))
+       (= (car (range this)) (car (range other)))
        (= (cadr (range this)) (cadr (range other)))
        (eq (feature this) (feature other))))
 
