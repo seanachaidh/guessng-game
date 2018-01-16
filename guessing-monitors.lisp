@@ -38,11 +38,12 @@
     :add-time-and-experiment-to-file-name t)
 
 (define-monitor record-classification-success
+  :average-windows 100
 	:class 'data-recorder)
 
 (define-monitor plot-classification-success
     :class 'gnuplot-graphic-generator
-    :documentation "Plots communicative success"
+    :documentation "Plots classification success"
     :data-sources '((average record-classification-success))
     :update-interval 100
     :caption '("Classification success" )
@@ -80,12 +81,18 @@
 (define-event agent-adapts (agent guessing-agent) (adaption string))
 (define-event object-picked (agent guessing-agent) (object guessing-object))
 (define-event agent-learns (agent guessing-agent) (word string))
-(define-event classification-finished (success t))
+(define-event classification-finished (success integer))
 
 ;; Here we record tghe value for the classification success
 (define-event-handler (record-classification-success classification-finished)
+  (if (eq success 0)
+    (format t "classification failed!~%")
+    (format t "classification succeeded!~%"))
+    
+  (format t "AVGvals: ~a~%" (get-average-values monitor))
+  (break "monitoring classification")
 	(record-value monitor
-		(if success 1 0)))
+    success))
 
 (define-event-handler (record-lexes-speaker interaction-finished)
   (record-value monitor

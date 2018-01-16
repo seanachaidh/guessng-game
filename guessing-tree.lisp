@@ -85,14 +85,14 @@
           (progn
              (when countscore
                 (split-node tree matching-node)
-                (notify classification-finished nil))
+                (notify classification-finished 0))
              nil)
           (progn
             (when countscore
                 (setf (score tree) (+ (score tree) 1))
                 (setf (score matching-node) (+ (score matching-node) 1))
                 (prune-tree tree *prune-level*)
-                (notify classification-finished t))
+                (notify classification-finished 1))
             matching-node)))));Return true if classification succeeds
 
 ;this procedure is iterative and it is better to fix this

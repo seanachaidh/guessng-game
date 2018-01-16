@@ -29,4 +29,4 @@
   ;~ :average-windows 1
   ;~ :title "hello")
 
-(run-batch 'guessing-environment 100 1)
+(run-batch 'guessing-environment 10 1)
