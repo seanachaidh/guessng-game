@@ -1,5 +1,7 @@
 (in-package :guessing)
 
+(defparameter *classification-counter* 0)
+
 ;; Some of these monitors are copied from the example
 (define-monitor plot-communicative-success
     :class 'gnuplot-graphic-generator
@@ -38,7 +40,7 @@
     :add-time-and-experiment-to-file-name t)
 
 (define-monitor record-classification-success
-  :average-windows 100
+  :average-windows 1
 	:class 'data-recorder)
 
 (define-monitor plot-classification-success
@@ -89,11 +91,17 @@
     (format t "classification failed!~%")
     (format t "classification succeeded!~%"))
     
-  (format t "AVGvals: ~a~%" (get-average-values monitor))
-  (break "monitoring classification")
-	(record-value monitor
-    success))
+  ;~ (format t "AVGvals: ~a~%" (get-average-values monitor))
+  
+  (let ((recval (if (eq *classification-counter* 0)
+                    success
+                    (/ (+ (* (current-value monitor) *classification-counter*) success) (+ *classification-counter* 1)))))
+    (setq *classification-counter* (+ *classification-counter* 1))
+    (record-value monitor recval)))
 
+(define-event-handler (record-classification-success interaction-finished)
+  (setq *classification-counter* 0))
+  
 (define-event-handler (record-lexes-speaker interaction-finished)
   (record-value monitor
     (used-word (speaker experiment))))
@@ -166,7 +174,6 @@
                                                   end
                                                   collect (/ x counter))))))
       (format t "plot for words: ~{~s~}~%" wordlist)
-      (break)
       (loop for freq in frequencies
             for filename = (first freq)
             for serial-data = (list (second freq))
