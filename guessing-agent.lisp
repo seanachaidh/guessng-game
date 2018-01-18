@@ -106,7 +106,8 @@
                           (get-form-competitors agent (used-word agent))
                           (get-meaning-competitors agent (used-word agent)))))
       (setf (score (used-word agent)) (+ (* (score (used-word agent))
-                                            (- 1 (get-configuration agent :lateral-inc-delta)))))
+                                            (- 1 (get-configuration agent :lateral-inc-delta)))
+                                         (get-configuration agent :lateral-inc-delta)))
       (loop for c in competitors
         do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
     (when (eql (discourse-role agent) 'speaker)
@@ -117,7 +118,8 @@
   (if (communicated-successfully agent)
     (let ((competitors (get-form-competitors agent (used-word agent))))
       (setf (score (used-word agent)) (+ (* (score (used-word agent))
-                                            (- 1 (get-configuration agent :lateral-inc-delta)))))
+                                            (- 1 (get-configuration agent :lateral-inc-delta)))
+                                          (get-configuration agent :lateral-inc-delta)))
       (loop for c in competitors
         do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
     (when (eql (discourse-role agent) 'speaker)
