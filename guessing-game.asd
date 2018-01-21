@@ -15,4 +15,5 @@
     (:file "guessing-monitors")
     (:file "guessing-tree")
     (:file "guessing-world")
-    (:file "guessing-environment")))
+    (:file "guessing-environment")
+    (:file "guessing-utils")))

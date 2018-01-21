@@ -75,6 +75,9 @@
 
 (define-configuration-default-value :lateral-inc-delta 0.1)
 (define-configuration-default-value :lateral-dec-delta 0.2)
+(define-configuration-default-value :initial-score 0.5)
+(define-configuration-default-value :saliency 1)
+
 ;~ (define-configuration-default-value :li-inh-score 0.2)
 
 
@@ -167,7 +170,7 @@
 (defmethod conceptualize ((robot guessing-agent) (object guessing-object) (word string) (others list))
   (let* ((tree (pick-tree robot object others))
 	 (new-meaning (deep-classify tree object others)))
-    (push (make-instance 'word :form word :meaning new-meaning :score 0.5) (words robot))))
+    (push (make-instance 'word :form word :meaning new-meaning :score (get-configuration robot :initial-score)) (words robot))))
     
 (defmethod invent-word ((robot guessing-agent) (meaning guessing-node))
   (let* ((vowels "aeiou")
@@ -180,7 +183,7 @@
 				 collect (char consonants (random (length consonants))))))
     (push (make-instance 'word :form (format nil "~{~A~}" character-list)
 		     :meaning meaning
-		     :score 0.5)
+		     :score (get-configuration robot :initial-score))
 	  (words robot))
     (car (words robot))))
 
@@ -202,7 +205,7 @@
 								    filtered-objects))))
 			       (lambda (x y)
 				 (> (cdr x) (cdr y)))))
-	 (to-choose-from (subseq selected-trees 0 *salthres*))
+	 (to-choose-from (subseq selected-trees 0 (get-configuration robot :saliency)))
 	 (the-chosen-one (random-elt to-choose-from)))
 
 

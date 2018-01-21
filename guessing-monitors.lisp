@@ -18,6 +18,14 @@
     :file-name (merge-pathnames (truename ".") "success.pdf")
     :add-time-and-experiment-to-file-name t)
     
+(define-monitor export-communicative-success
+  :class 'lisp-data-file-writer
+  :documentation "Exports communicative success"
+  :data-sources '(default-record-communicative-success)
+  :file-name (make-pathname :directory '(:relative "rawdata") :name "communicative-success" :type "lisp")
+  :add-time-and-experiment-to-file-name nil
+  :column-separator " "
+  :comment-string "#")
 
 ;; Extra monitor for the alignment success
 (define-monitor record-alignment-success
