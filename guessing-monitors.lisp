@@ -147,7 +147,15 @@
     (format (monitor-stream monitor)
       "Interaction failed!~%")))
       
-      
+
+
+;;helping function
+(defun relative-to-babel (path)
+  (let ((firstelem (loop for x in (cdr (pathname-directory (babel-pathname)))
+                        collect :up))
+        (secondelem (append (cdr (pathname-directory (truename path))) (list (pathname-name path)))))
+    (append firstelem secondelem)))
+
 (define-event-handler (record-lexes-speaker run-series-finished)
   (format t "~{~a~%~}" (get-average-values monitor))
   (labels ((most-used-meaning (wordlist)
@@ -185,11 +193,11 @@
       (loop for freq in frequencies
             for filename = (first freq)
             for serial-data = (list (second freq))
-            do (write-serialized-plot-data (list serial-data) (babel-pathname :directory (list :up "tmpgraph" (concatenate 'string filename ".lisp")))))
+            do (write-serialized-plot-data (list serial-data) (make-pathname :directory (list :relative "tmpgraph") :name filename :type "lisp")))
                                                   
       (raw-files->evo-plot
         :raw-file-paths (loop for w in wordlist
-                            collect (list :up "tmpgraph" w))
+                            collect (relative-to-babel (make-pathname :directory '(:relative "tmpgraph") :name w :type "lisp")))
         :average-windows 1
         :title "form-meaning-plot"))))
         

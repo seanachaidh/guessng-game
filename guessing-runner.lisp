@@ -23,6 +23,8 @@
 (defparameter *testboard* (make-instance 'blackboard))
 (add-data-field *testboard* 'hello (list (list 1 2 3 2 1 5)))
 
+(run-batch 'guessing-environment 1000 1)
+
 (run-experiments '((minimal ((:alignment-strategy . :minimal))))
   :population-size 10
   :number-of-interactions 1000)
@@ -38,4 +40,4 @@
   ;~ :average-windows 1
   ;~ :title "hello")
 
-;~ (run-batch 'guessing-environment 1000 1)
+
