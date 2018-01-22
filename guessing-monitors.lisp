@@ -47,6 +47,15 @@
     :file-name (merge-pathnames (truename ".") "alignment.pdf")
     :add-time-and-experiment-to-file-name t)
 
+(define-monitor export-alignment-success
+  :class 'lisp-data-file-writer
+  :documentation "Exports communicative success"
+  :data-sources '(record-alignment-success)
+  :file-name (make-pathname :directory '(:relative "rawdata") :name "alignment-success" :type "lisp")
+  :add-time-and-experiment-to-file-name nil
+  :column-separator " "
+  :comment-string "#")
+
 (define-monitor record-classification-success
   :average-windows 1
 	:class 'data-recorder)
@@ -84,6 +93,19 @@
     :x-label "Total number of interactions"
     :file-name (merge-pathnames (truename ".") "competition.pdf")
     :graphic-type "pdf")
+
+(define-monitor record-average-ontology-size
+  :class 'data-recorder
+  :average-windows 1)
+
+(define-monitor export-ontology-size
+  :class 'lisp-data-file-writer
+  :documentation "Exports Ontology size"
+  :data-sources '(record-average-ontology-size)
+  :file-name (make-pathname :directory '(:relative "rawdata") :name "ontology-size" :type "lisp")
+  :add-time-and-experiment-to-file-name nil
+  :column-separator " "
+  :comment-string "#")
 
 ;; Events to be used for tracing the application
 (define-event object-classified (object guessing-object) (node guessing-node))
@@ -147,13 +169,13 @@
     (format (monitor-stream monitor)
       "Interaction failed!~%")))
       
-
-
 ;;helping function
 (defun relative-to-babel (path)
   (let ((firstelem (loop for x in (cdr (pathname-directory (babel-pathname)))
                         collect :up))
-        (secondelem (append (cdr (pathname-directory (truename path))) (list (pathname-name path)))))
+        (secondelem (if (null (pathname-name path))
+                          (cdr (pathname-directory (truename path)))
+                          (append (cdr (pathname-directory (truename path))) (list (pathname-name path))))))
     (append firstelem secondelem)))
 
 (define-event-handler (record-lexes-speaker run-series-finished)
@@ -202,6 +224,10 @@
         :title "form-meaning-plot"))))
         
       
+
+(define-event-handler (record-average-ontology-size interaction-finished)
+  (let ((value (/ (loop for a in (population experiment) sum (length (words a))) (length (population experiment)))))
+    (record-value monitor value)))
 
 (define-event-handler (trace-interaction-in-repl agent-learns)
   (format (monitor-stream monitor)

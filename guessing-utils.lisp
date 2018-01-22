@@ -7,7 +7,7 @@
                           (saliency 1)
                           (number-of-interactions 2000) (number-of-series 4)
                           (monitors 
-                           '("export-communicative-success")))
+                           '("export-communicative-success" "export-ontology-size" "export-alignment-success")))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
    :experiment-class 'guessing-environment
@@ -19,3 +19,18 @@
    :configurations strategies
    :output-dir (make-pathname :directory '(:relative "rawdata")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
+  
+  
+(defun create-graph-comparing-strategies (&key experiment-names measure-name)
+  (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
+  (raw-files->evo-plot 
+   :raw-file-paths 
+   (loop for experiment-name in experiment-names
+      collect (relative-to-babel (make-pathname :directory (list :relative "rawdata" experiment-name) :name measure-name :type "lisp")))
+   :average-windows 100 :y1-label measure-name
+   :captions experiment-names                  
+   :plot-directory (relative-to-babel (truename "."))
+   :error-bars :stdev :error-bar-modes '(:lines)
+   :title measure-name
+   :plot-file-name measure-name)
+  (format t "~%Graphs have been created"))

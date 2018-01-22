@@ -2,6 +2,7 @@
 (asdf:make :guessing-game)
 
 (in-package :guessing)
+(trace relative-to-babel)
 
 (defparameter *robotdata-path* 
   (babel-pathname :directory (list :up "robotdata"))
@@ -23,13 +24,22 @@
 (defparameter *testboard* (make-instance 'blackboard))
 (add-data-field *testboard* 'hello (list (list 1 2 3 2 1 5)))
 
-(run-batch 'guessing-environment 1000 1)
+;~ (run-batch 'guessing-environment 1000 1)
 
-(run-experiments '((minimal ((:alignment-strategy . :minimal))))
+(run-experiments '((minimal ((:alignment-strategy . :minimal)))
+                   (imitate ((:alignment-strategy . :imitate)))
+                   (lateralinh ((:alignment-strategy . :lateral-inhibition)))
+                   (thinhibit ((:alignment-strategy . :th-lateral)))
+                   (special ((:alignment-strategy . :special-lateral))))
   :population-size 10
-  :number-of-interactions 1000)
+  :number-of-interactions 3000)
   
 
+(create-graph-comparing-strategies :experiment-names '("minimal" "imitate" "lateralinh" "thinhibit" "special")
+                                   :measure-name "alignment-success")
+
+(create-graph-comparing-strategies :experiment-names '("minimal" "imitate" "lateralinh" "thinhibit" "special")
+                                   :measure-name "communicative-success")
 
 (let ((plot-data (get-plot-data-from-blackboards (list *testboard*) 'hello)))
   (format t "~a~%" (serialize-plot-data plot-data))

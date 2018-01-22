@@ -114,7 +114,7 @@
       (loop for c in competitors
         do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
     (when (eql (discourse-role agent) 'speaker)
-      (setf (score (used-word agent)) (- (* (score (used-word agent))
+      (setf (score (used-word agent)) (- (score (used-word agent)) (* (score (used-word agent))
                                             (- 1 (get-configuration agent :lateral-dec-delta))))))))
 
 (defmethod align-agent ((agent guessing-agent) (strategy (eql :special-lateral)))
@@ -126,7 +126,7 @@
       (loop for c in competitors
         do (setf (score c) (- (* (score c) (- 1 (get-configuration agent :lateral-dec-delta)))))))
     (when (eql (discourse-role agent) 'speaker)
-      (setf (score (used-word agent)) (- (* (score (used-word agent))
+      (setf (score (used-word agent)) (- (score (used-word agent)) (* (score (used-word agent))
                                             (- 1 (get-configuration agent :lateral-dec-delta))))))))
 
 ;; -------------------------------
@@ -189,7 +189,7 @@
 
 (defmethod prune-words ((robot guessing-agent))
   (setf (words robot) (remove-if (lambda (x)
-				   (or (<= (score x) 0)))
+				   (<= (score x) 0))
 				 (words robot))))
 
 (defmethod pick-tree ((robot guessing-agent) (obj guessing-object) (others list))
@@ -229,5 +229,3 @@
 	(if invent
 		(invent-word robot meaning)
 		nil))))
-
-
