@@ -76,6 +76,15 @@
     :add-time-and-experiment-to-file-name t)
     
 
+(define-monitor export-classification-success
+  :class 'lisp-data-file-writer
+  :documentation "Exports classification success"
+  :data-sources '(record-alignment-success)
+  :file-name (make-pathname :directory '(:relative "rawdata") :name "classification-success" :type "lisp")
+  :add-time-and-experiment-to-file-name nil
+  :column-separator " "
+  :comment-string "#")
+
 (define-monitor record-name-competition
   :class 'alist-recorder
   :average-windows 1)
@@ -220,6 +229,7 @@
       (raw-files->evo-plot
         :raw-file-paths (loop for w in wordlist
                             collect (relative-to-babel (make-pathname :directory '(:relative "tmpgraph") :name w :type "lisp")))
+        :plot-file-name "competition"
         :average-windows 1
         :title "form-meaning-plot"))))
         
