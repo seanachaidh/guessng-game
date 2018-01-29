@@ -56,7 +56,7 @@
 ;;Configuration values
 (define-configuration-default-value :environment-data-set (list "objects-1"))
 (define-configuration-default-value :population-size 10)
-(define-configuration-default-value :alignment-strategy :special-lateral)
+(define-configuration-default-value :alignment-strategy :imitate)
 
 (defmethod initialize-instance :after ((experiment guessing-environment) &key)
   (setf (world experiment) (make-instance 'guessing-world

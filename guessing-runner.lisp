@@ -40,6 +40,8 @@
 
 (create-graph-comparing-strategies :experiment-names '("minimal" "imitate" "lateralinh" "thinhibit" "special")
                                    :measure-name "communicative-success")
+(create-graph-comparing-strategies :experiment-names '("minimal" "imitate" "lateralinh" "thinhibit" "special")
+                                   :measure-name "lexicon-size")
 
 
 (run-experiments '((minimalsmall ((:alignment-strategy . :minimal)))
@@ -59,8 +61,8 @@
                                    :file-name "communicative-success-small")
                                    
 (create-graph-comparing-strategies :experiment-names '("minimalsmall" "imitatesmall" "lateralinhsmall" "thinhibitsmall" "specialsmall")
-                                   :measure-name "ontology-size"
-                                   :file-name "ontology-size-small")
+                                   :measure-name "lexicon-size"
+                                   :file-name "lexicon-size-small")
                                    
 (create-graph-for-single-strategy :experiment-name "minimalsmall" :measure-names '("classification-success") :file-name "communicative-success")
 

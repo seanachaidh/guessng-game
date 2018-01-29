@@ -7,7 +7,7 @@
                           (saliency 1)
                           (number-of-interactions 2000) (number-of-series 4)
                           (monitors 
-                           '("export-communicative-success" "export-ontology-size" "export-classification-success" "record-lexes-speaker" "export-alignment-success")))
+                           '("export-communicative-success" "export-lexicon-size" "export-classification-success" "record-lexes-speaker" "export-alignment-success")))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
    :experiment-class 'guessing-environment

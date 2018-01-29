@@ -103,15 +103,15 @@
     :file-name (merge-pathnames (truename ".") "competition.pdf")
     :graphic-type "pdf")
 
-(define-monitor record-average-ontology-size
+(define-monitor record-average-lexicon-size
   :class 'data-recorder
   :average-windows 1)
 
-(define-monitor export-ontology-size
+(define-monitor export-lexicon-size
   :class 'lisp-data-file-writer
   :documentation "Exports Ontology size"
-  :data-sources '(record-average-ontology-size)
-  :file-name (make-pathname :directory '(:relative "rawdata") :name "ontology-size" :type "lisp")
+  :data-sources '(record-average-lexicon-size)
+  :file-name (make-pathname :directory '(:relative "rawdata") :name "lexicon-size" :type "lisp")
   :add-time-and-experiment-to-file-name nil
   :column-separator " "
   :comment-string "#")
@@ -235,7 +235,7 @@
         
       
 
-(define-event-handler (record-average-ontology-size interaction-finished)
+(define-event-handler (record-average-lexicon-size interaction-finished)
   (let ((value (/ (loop for a in (population experiment) sum (length (words a))) (length (population experiment)))))
     (record-value monitor value)))
 
