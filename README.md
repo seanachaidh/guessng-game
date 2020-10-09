@@ -24,3 +24,5 @@ population-size: influences th population size of the experiment
 Look for more information in the report or in the file guessing-runner.lisp. This file generates plot and rawdata. All plots are generated in the root directory of the project.
 
 Please do not remove the folder rawdata and tmpgraph
+
+For more information, read the book "the talking heads experiment" by Luc Steels
